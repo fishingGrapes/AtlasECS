@@ -254,6 +254,14 @@ namespace atlas
 
 		void DestroyEntity(Entity entity)
 		{
+
+			if (!m_Entities.has(entity))
+			{
+				std::cout << "Entity is Not Alive" << std::endl;
+				return;
+			}
+
+
 			// This can be used to recycle Entities
 			m_DeletedEntities.push_back(entity);
 			m_Entities.erase(entity);

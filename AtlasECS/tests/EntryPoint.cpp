@@ -29,6 +29,12 @@ int main()
 	world->RemoveComponent<FNameComponent>(e2);
 	world->AddComponent<FPositionComponent>(e1, FPositionComponent(0,0,0));
 
+	world->DestroyEntity(e2);
+	world->DestroyEntity(e2);
+	e2 = world->CreateEntity();
+	std::cout << e2 << std::endl;
+	world->DestroyEntity(e2);
+	world->DestroyEntity(e2);
 
 	std::getchar();
 	return 0;
