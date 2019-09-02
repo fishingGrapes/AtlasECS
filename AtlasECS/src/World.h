@@ -16,7 +16,7 @@ namespace atlas
 	class CWorld
 	{
 
-		using ComponentChangedFunction = std::function<void(Entity e, const BitMask& entityMask, const BitMask& compMask)>;
+		using ComponentListenerFunction = std::function<void(Entity e, const BitMask& entityMask, const BitMask& compMask)>;
 		using ComponentDestroyFunction = std::function<void()>;
 
 	public:
@@ -123,7 +123,7 @@ namespace atlas
 
 			BitMask mask = m_EntityMasks[entity];
 
-			for (auto& fn : m_ComponentRemoveFunctions)
+			for (auto& fn : m_OnComponentRemovedFunctions)
 			{
 				// The Third parameter is unnecessary
 				fn(entity, mask, mask);
@@ -168,7 +168,7 @@ namespace atlas
 			// Entity now has the Component bit set to 0.
 			BitMask entityMask = m_EntityMasks[entity];
 
-			for (auto& fn : m_ComponentRemoveFunctions)
+			for (auto& fn : m_OnComponentRemovedFunctions)
 			{
 				fn(entity, entityMask, T::Filter);
 			}
@@ -190,14 +190,14 @@ namespace atlas
 
 		// TODO: Maybe move these into Private and add CSystem as Friend Function
 
-		void AddOnComponentAddedFunction(ComponentChangedFunction fn)
+		void AddOnComponentAddedFunction(ComponentListenerFunction fn)
 		{
-			m_ComponentAddFunctions.push_back(fn);
+			m_OnComponentAddedFunctions.push_back(fn);
 		}
 
-		void AddOnComponentRemovedFunction(ComponentChangedFunction fn)
+		void AddOnComponentRemovedFunction(ComponentListenerFunction fn)
 		{
-			m_ComponentRemoveFunctions.push_back(fn);
+			m_OnComponentRemovedFunctions.push_back(fn);
 		}
 
 
@@ -225,8 +225,8 @@ namespace atlas
 		std::vector<std::vector<uint8_t>> m_ComponentBuffers;
 
 
-		std::vector<ComponentChangedFunction> m_ComponentAddFunctions;
-		std::vector<ComponentChangedFunction> m_ComponentRemoveFunctions;
+		std::vector<ComponentListenerFunction> m_OnComponentAddedFunctions;
+		std::vector<ComponentListenerFunction> m_OnComponentRemovedFunctions;
 
 
 		// Recursive Add Components
@@ -265,7 +265,7 @@ namespace atlas
 			m_EntityMasks[entity] |= T::Filter;
 			BitMask entityMask = m_EntityMasks[entity];
 
-			for (auto& fn : m_ComponentAddFunctions)
+			for (auto& fn : m_OnComponentAddedFunctions)
 			{
 				fn(entity, entityMask, T::Filter);
 			}
