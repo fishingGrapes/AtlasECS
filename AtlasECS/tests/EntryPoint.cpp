@@ -25,21 +25,10 @@ int main()
 
 	Entity e2 = world->CreateEntity();
 	world->AddComponent<FPositionComponent>(e2, FPositionComponent(4, 5, 6));
-	world->AddComponent<FNameComponent>(e2, FNameComponent("How Are You?"));
 
-	//Returns a Tightly Packed Array of  Components
-
-	auto [positionComponents, pcount] = world->GetComponentsOfType<FPositionComponent>();
-	std::cout << pcount << std::endl;
-
-	auto [nameComponents, ncount] = world->GetComponentsOfType<FNameComponent>();
-	std::cout << ncount << std::endl;
-
-	// Remove Name Component from Entity 2 and Print number of
-	// Components with Name Components.
 	world->RemoveComponent<FNameComponent>(e2);
-	auto[nameComponents1, ncount1] = world->GetComponentsOfType<FNameComponent>();
-	std::cout << ncount1 << std::endl;
+	world->AddComponent<FPositionComponent>(e1, FPositionComponent(0,0,0));
+
 
 	std::getchar();
 	return 0;
