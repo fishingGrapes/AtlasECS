@@ -12,12 +12,12 @@
 namespace atlas 
 {
 
-	/*********************************************************************************************************/
 
 	class CWorld
 	{
 
 		using ComponentChangedFunction = std::function<void(Entity e, const BitMask& entityMask, const BitMask& compMask)>;
+		using ComponentDestroyFunction = std::function<void()>;
 
 	public:
 
@@ -27,17 +27,24 @@ namespace atlas
 
 			m_Entities.reserve(initialEntities);
 			m_EntityMasks.reserve(initialEntities);
-			m_ContainedComponentIDs.resize(initialEntities, std::forward_list<uint32_t>());
 
+			//The following two sets would work together
+			m_ContainedComponentIDs.resize(initialEntities, std::forward_list<uint32_t>());
+			m_ComponentDestroyFunctions.resize(initialEntities);
+			for (size_t i = 0; i < initialEntities; ++i)
+			{
+				m_ComponentDestroyFunctions[i].resize(MAX_COMPONENTS);
+			}
 
 			std::pair<uint32_t, size_t> initialPair = std::make_pair(0, 0);
 			m_ValidComponents.resize(MAX_COMPONENTS, initialPair);
 
 			m_ComponentBuffers.reserve(MAX_COMPONENTS);
-			for (size_t i = 0; i < m_ComponentBuffers.capacity(); i++)
+			for (size_t i = 0; i < MAX_COMPONENTS; ++i)
 			{
 				m_ComponentBuffers.push_back(std::vector<uint8_t>());
 			}
+
 		}
 
 		Entity CreateEntity()
@@ -51,6 +58,14 @@ namespace atlas
 
 				entity = m_LargestEntityIndex;
 				++m_LargestEntityIndex;
+
+				// Per Entity Data must be resized when the Limit is Touched
+				if (entity >= m_EntityMasks.capacity())
+				{
+					m_EntityMasks.resize(entity * 2);
+					m_ContainedComponentIDs.resize(entity * 2, std::forward_list<uint32_t>());
+					m_ComponentDestroyFunctions.resize(entity * 2);
+				}
 			}
 			else
 			{
@@ -76,24 +91,35 @@ namespace atlas
 
 		void DestroyEntity(Entity entity)
 		{
+
+			if (!m_Entities.has(entity))
+			{
+				std::cout << "ATLAS_ECS :: Entity is Not Alive." << std::endl;
+				return;
+			}
+
+
 			// This can be used to recycle Entities
 			m_DeletedEntities.push_back(entity);
 			m_Entities.erase(entity);
 
 
-			// This does not call the Destrcutor on the Components
-			// But It updates the Number of valid Components which might be useful
 
+			// It updates the Number of valid Components which might be useful
 			std::forward_list<uint32_t>& componentIDs = m_ContainedComponentIDs[entity];
 			for (auto itr = componentIDs.begin(); itr != componentIDs.end(); ++itr)
 			{
 				std::pair<uint32_t, size_t> oldPair = m_ValidComponents[*itr];
 				std::pair<uint32_t, size_t> newPair = std::make_pair(oldPair.first - 1, oldPair.second);
 				m_ValidComponents[*itr] = newPair;
-			}
 
+				//Call the Free Function of Each Component Instance
+				(m_ComponentDestroyFunctions[entity][*itr])();
+			}
 			// Clear all the ComponentIDs associated with this Entity
 			m_ContainedComponentIDs[entity].clear();
+
+
 
 			BitMask mask = m_EntityMasks[entity];
 
@@ -119,7 +145,7 @@ namespace atlas
 			// If the Entity does'nt contain this Component do Nothing
 			if ((m_EntityMasks[entity] & T::Filter) != T::Filter)
 			{
-				std::cout << "Entity Doesn't Contain Component" << std::endl;
+				std::cout << "ATLAS_ECS :: Entity Doesn't Contain Component." << std::endl;
 				return;
 			}
 
@@ -187,6 +213,8 @@ namespace atlas
 		std::vector<BitMask> m_EntityMasks;
 		// This is a map of Entites and their Valid Components
 		std::vector<std::forward_list<uint32_t>> m_ContainedComponentIDs;
+		//This is a map of Entities and its Respective ComponentDestry Functions
+		std::vector<std::vector<ComponentDestroyFunction>> m_ComponentDestroyFunctions;
 
 		/****************************** Per Component Variables ************************/
 
@@ -197,10 +225,8 @@ namespace atlas
 		std::vector<std::vector<uint8_t>> m_ComponentBuffers;
 
 
-
 		std::vector<ComponentChangedFunction> m_ComponentAddFunctions;
 		std::vector<ComponentChangedFunction> m_ComponentRemoveFunctions;
-
 
 
 		// Recursive Add Components
@@ -219,17 +245,19 @@ namespace atlas
 			// If this Entity Already Contains thiss Component, Do nothing
 			if ((m_EntityMasks[entity] & T::Filter) == T::Filter)
 			{
-				std::cout << "Entity Already Contains Component" << std::endl;
+				std::cout << "ATLAS_ECS :: Entity Already Contains Component." << std::endl;
 				return;
 			}
 
 			// Actually Setting Component
 			uint32_t id = T::Id;
-			T::Create(m_ComponentBuffers[id], entity, &component);
+			auto destroyFn = T::Create(m_ComponentBuffers[id], entity, &component);
 
 			// The Entity now conatins this Component
 			m_ContainedComponentIDs[entity].push_front(id);
-
+			// Set the Component's free Function
+			m_ComponentDestroyFunctions[entity][id] = std::move(destroyFn);
+			// The Current Number of Instances of this Components in the World
 			std::pair<uint32_t, size_t> newPair = std::make_pair(m_ValidComponents[id].first + 1, T::Size);
 			m_ValidComponents[id] = newPair;
 
@@ -244,4 +272,5 @@ namespace atlas
 		}
 
 	};
+
 }

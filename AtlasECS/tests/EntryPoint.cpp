@@ -20,22 +20,16 @@ int main()
 
 	// Entities can be Created using the CreateEntity Function
 	// Entity IDs are unique to each world.
-	Entity e1 = world->CreateEntity<FPositionComponent, FNameComponent>
-		(FPositionComponent(1, 2, 3), FNameComponent("Hello World!"));
 
-	Entity e2 = world->CreateEntity();
-	world->AddComponent<FPositionComponent>(e2, FPositionComponent(4, 5, 6));
+	Entity e2 = world->CreateEntity<FPositionComponent>(std::move(FPositionComponent(1, 2, 2)));
+	world->AddComponent<FNameComponent>(e2, std::move(FNameComponent("Hello")));
+
+	std::cout << "Wait" << std::endl;
+	world->DestroyEntity(e2);
 
 	world->RemoveComponent<FNameComponent>(e2);
-	world->AddComponent<FPositionComponent>(e1, FPositionComponent(0,0,0));
-
-	world->DestroyEntity(e2);
-	world->DestroyEntity(e2);
-	e2 = world->CreateEntity();
-	std::cout << e2 << std::endl;
-	world->DestroyEntity(e2);
-	world->DestroyEntity(e2);
 
 	std::getchar();
 	return 0;
 }
+

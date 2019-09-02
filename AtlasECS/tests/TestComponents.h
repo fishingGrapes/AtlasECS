@@ -24,7 +24,7 @@ public:
 		other.z = 0;
 	}
 
-	~FPositionComponent(){}
+	~FPositionComponent() { std::cout << "Position Destroyed " << std::endl; }
 
 	virtual std::string ToString() const override
 	{
@@ -54,7 +54,7 @@ public:
 	{
 		other.Name = "";
 	}
-	~FNameComponent() {}
+	~FNameComponent() { std::cout << "Name Destroyed " << std::endl; }
 
 	virtual std::string ToString() const override { return Name; }
 

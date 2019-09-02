@@ -13,7 +13,7 @@ namespace atlas
 
 	struct FBaseComponent;
 
-	using ComponentCreateFunction = uint32_t(*)(std::vector<uint8_t>&, Entity, FBaseComponent*);
+	using ComponentCreateFunction = std::function<void()>(*)(std::vector<uint8_t>&, Entity, FBaseComponent*);
 	using ComponentFreeFunction = void(*)(FBaseComponent*);
 
 	struct FBaseComponent
@@ -70,7 +70,7 @@ namespace atlas
 	const size_t FComponent<T>::Size(sizeof(T));
 
 	template <typename Component>
-	uint32_t ComponentCreate(std::vector<uint8_t>& buffer, Entity entity, FBaseComponent* comp)
+	std::function<void()> ComponentCreate(std::vector<uint8_t>& buffer, Entity entity, FBaseComponent* comp)
 	{
 		size_t index = buffer.size();
 
@@ -95,7 +95,7 @@ namespace atlas
 		Component* component = new(&memory[index]) Component(*((Component*)comp));
 		component->Entity = entity;
 
-		return static_cast<uint32_t>(index);
+		return [component]() { component->~Component(); };
 	}
 
 	template <typename Component>
