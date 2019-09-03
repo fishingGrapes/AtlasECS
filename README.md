@@ -55,6 +55,9 @@ int main()
 
 	// Destroying an Entity would destroy all the Components associated with it.
 	world->DestroyEntity(e2);
+	
+	// Query whether the Entity is alive.
+	world->IsEntityAlive(e2);
 
 	// Get Components of type would return an Array of the Components of the Passed Type
 	// and the Number of **Valid** Components in the Array.
@@ -79,14 +82,18 @@ public:
 		// and upon entity Destruction.
 
 		// Only consider Elements with the Following Components
-		this->Match<FPositionComponent, FRotationComponent>();
+		this->MatchEntitiesWith<FPositionComponent, FRotationComponent>();
 
-		// Discard Entities with these Components,
+		// Discard Entities with atleast one of these Components,
 		// even if they have matching Components.
-		this->Exclude<FStaticMeshComponent>();
+		this->ExcludeEntitiesWithAnyOf<FStaticMeshComponent, FTurretComponent>();
+		
+		// Discard Entities with all of these Components,
+		// even if they have matching Components.
+		this->ExcludeEntitiesWithAllOf<FHealthComponent, FNavmeshComponent>();
 	}
 
-	void OnUpate(float dt)
+	void OnUpdate(float dt)
 	{
 		// GetComponentsOfType returns a Tuple of [T*, count] 
 		auto[position_array, pcount] = world->GetComponentsOfType<FPositionComponent>();
