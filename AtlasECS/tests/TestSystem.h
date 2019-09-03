@@ -10,7 +10,9 @@ public:
 	{
 		// Selectively Include and Exclude Components
 		// using these Functions
-		this->Match<FPositionComponent>();
-		this->Exclude<FStaticMeshComponent>();
+		this->MatchEntitiesWith<FPositionComponent>();
+		this->ExcludeEntitiesWithAnyOf<FStaticMeshComponent>();
+
+		
 	}
 };

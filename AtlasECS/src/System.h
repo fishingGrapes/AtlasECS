@@ -24,7 +24,7 @@ namespace atlas
 			{
 				// If the Entity contains a Type thats is in the Exclusion Mask,
 				//  then return as we're not interested in those types.
-				if ((entityMask & m_ExclusionMask) == entityMask)
+				if ((entityMask & m_ExclusionMask_Any) == entityMask)
 					return;
 
 				// If the Entity does not contain the Type in the Inclusion Mask,
@@ -39,7 +39,7 @@ namespace atlas
 			world->AddOnComponentRemovedFunction(
 				[this](uint32_t entity, const BitMask& entityMask, const BitMask& componentMask)
 			{
-				if ((entityMask & m_ExclusionMask) == entityMask)
+				if ((entityMask & m_ExclusionMask_Any) == entityMask)
 					return;
 
 				if ((componentMask & m_InclusionMask) == componentMask)
@@ -54,19 +54,19 @@ namespace atlas
 
 		SparseSet<uint32_t> m_MatchingEntities;
 		BitMask m_InclusionMask;
-		BitMask m_ExclusionMask;
+		BitMask m_ExclusionMask_Any;
 
 		template <typename ... T>
-		void Match()
+		void MatchEntitiesWith()
 		{
 			// NOTE: This is a Fold Expression.
 			m_InclusionMask |= (T::Filter | ...);
 		}
 
 		template <typename ... T>
-		void Exclude()
+		void ExcludeEntitiesWithAnyOf()
 		{
-			m_ExclusionMask |= (T::Filter | ...);
+			m_ExclusionMask_Any |= (T::Filter | ...);
 		}
 	};
 }

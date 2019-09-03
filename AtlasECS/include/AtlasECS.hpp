@@ -403,6 +403,21 @@ namespace atlas
 			return  { buffer, size };
 		}
 
+		const SparseSet<Entity>& GetEntities( ) const
+		{
+			return m_Entities;
+		}
+
+		const std::vector<BitMask>& GetEntityMasks( ) const
+		{
+			return m_EntityMasks;
+		}
+
+		bool IsEntityAlive( const Entity& entity ) const
+		{
+			return ( std::find( m_DeletedEntities.begin( ), m_DeletedEntities.end( ), entity ) == m_DeletedEntities.end( ) );
+		}
+
 		// TODO: Maybe move these into Private and add CSystem as Friend Function
 
 		void AddOnComponentAddedFunction( ComponentListenerFunction fn )
@@ -509,12 +524,19 @@ namespace atlas
 		// TODO: This might take in an InitalCapacity, 
 		// which is user Dependent.
 		CSystem( std::shared_ptr<CWorld> world )
+			:m_World( world )
 		{
-			world->AddOnComponentAddedFunction( [ this ] ( uint32_t entity, const BitMask& entityMask, const BitMask& componentMask )
+			m_World->AddOnComponentAddedFunction( [ this ] ( uint32_t entity, const BitMask& entityMask, const BitMask& componentMask )
 			{
 				// If the Entity contains a Type thats is in the Exclusion Mask,
 				//  then return as we're not interested in those types.
-				if (( entityMask & m_ExclusionMask ) == entityMask)
+
+				// Atlease One Component must be Set to be Excluded.
+				if (( entityMask & m_ExclusionMask_Any ).any( ))
+					return;
+
+				// All Components must be Set to be Excluded.
+				if (( entityMask & m_ExclusionMask_All ) == entityMask)
 					return;
 
 				// If the Entity does not contain the Type in the Inclusion Mask,
@@ -526,9 +548,12 @@ namespace atlas
 			} );
 
 
-			world->AddOnComponentRemovedFunction( [ this ] ( uint32_t entity, const BitMask& entityMask, const BitMask& componentMask )
+			m_World->AddOnComponentRemovedFunction( [ this ] ( uint32_t entity, const BitMask& entityMask, const BitMask& componentMask )
 			{
-				if (( entityMask & m_ExclusionMask ) == entityMask)
+				if (( entityMask & m_ExclusionMask_Any ).any( ))
+					return;
+
+				if (( entityMask & m_ExclusionMask_All ) == entityMask)
 					return;
 
 				if (( componentMask & m_InclusionMask ) == componentMask)
@@ -537,25 +562,61 @@ namespace atlas
 				}
 
 			} );
+
 		}
 
 	protected:
 
+		std::shared_ptr<CWorld> m_World;
 		SparseSet<uint32_t> m_MatchingEntities;
+
 		BitMask m_InclusionMask;
-		BitMask m_ExclusionMask;
+		BitMask m_ExclusionMask_Any;
+		BitMask m_ExclusionMask_All;
+
+		void UpdateMatchingEntities( )
+		{
+			Entity entityID = 0;
+			auto entityMasks = m_World->GetEntityMasks( );
+			for (BitMask& mask : entityMasks)
+			{
+				// If any Bit returns true in the Exclusion Mask
+				// then Return.
+				if (( mask & m_ExclusionMask_Any ).any( ))
+					return;
+
+				if (( mask & m_ExclusionMask_All ) == mask)
+					return;
+
+				// If the Entity does not contain the Type in the Inclusion Mask,
+				// then return as We're not interested in other types.
+				if (( mask & m_InclusionMask ) == m_InclusionMask)
+				{
+					if (m_World->IsEntityAlive( entityID ))
+						m_MatchingEntities.insert( entityID );
+				}
+
+				++entityID;
+			}
+		}
 
 		template <typename ... T>
-		void Match( )
+		void MatchEntitiesWith( )
 		{
 			// NOTE: This is a Fold Expression.
 			m_InclusionMask |= ( T::Filter | ... );
 		}
 
 		template <typename ... T>
-		void Exclude( )
+		void ExcludeEntitiesWithAnyOf( )
 		{
-			m_ExclusionMask |= ( T::Filter | ... );
+			m_ExclusionMask_Any |= ( T::Filter | ... );
+		}
+
+		template <typename ... T>
+		void ExcludeEntitiesWithAllOf( )
+		{
+			m_ExclusionMask_All |= ( T::Filter | ... );
 		}
 	};
 
