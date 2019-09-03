@@ -8,7 +8,7 @@ public:
 	CTestSystem(std::shared_ptr<atlas::CWorld> world)
 		:CSystem(world)
 	{
-		// Selectively Include and Exclude Components 
+		// Selectively Include and Exclude Components
 		// using these Functions
 		this->Match<FPositionComponent>();
 		this->Exclude<FStaticMeshComponent>();
