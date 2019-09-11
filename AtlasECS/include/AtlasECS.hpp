@@ -129,8 +129,8 @@ namespace atlas
 
 	struct FBaseComponent;
 
-	using ComponentCreateFunction = std::function<void( )>( *)( std::vector<uint8_t>&, Entity, FBaseComponent* );
-	using ComponentFreeFunction = void( *)( FBaseComponent* );
+	using ComponentCreateFunction = std::function<void( )>( * )( std::vector<uint8_t>&, Entity, FBaseComponent* );
+	using ComponentFreeFunction = void( * )( FBaseComponent* );
 
 	struct FBaseComponent
 	{
@@ -210,7 +210,7 @@ namespace atlas
 		}
 
 		uint8_t* memory = buffer.data( );
-		Component* component = new( &memory[ index ] ) Component( *( (Component*) comp ) );
+		Component* component = new( &memory[ index ] ) Component( *( ( Component*) comp ) );
 		component->Entity = entity;
 
 		// This is returned for Component Deletion when an Entity is Destroyed.
@@ -223,7 +223,7 @@ namespace atlas
 	template <typename Component>
 	void ComponentFree( FBaseComponent* comp )
 	{
-		Component* component = (Component*) comp;
+		Component* component = ( Component*) comp;
 		component->~Component( );
 	}
 
@@ -372,7 +372,7 @@ namespace atlas
 			size_t index = entity * T::Size;
 			uint8_t* memory = m_ComponentBuffers[ id ].data( );
 
-			T* component = (T*) ( &memory[ index ] );
+			T* component = ( T*) ( &memory[ index ] );
 			T::Free( component );
 
 			// Remove the Id from the Entity's ComponetIDs List
@@ -397,7 +397,7 @@ namespace atlas
 			uint32_t id = T::Id;
 
 			uint8_t* memory = m_ComponentBuffers[ id ].data( );
-			T* const buffer = reinterpret_cast<T* const>( memory );
+			T* const buffer = reinterpret_cast<T * const>( memory );
 			uint32_t size = m_ValidComponents[ id ].first;
 
 			return  { buffer, size };
@@ -576,17 +576,19 @@ namespace atlas
 
 		void UpdateMatchingEntities( )
 		{
-			Entity entityID = 0;
+			Entity entityID = -1;
 			auto entityMasks = m_World->GetEntityMasks( );
 			for (BitMask& mask : entityMasks)
 			{
+				++entityID;
+
 				// If any Bit returns true in the Exclusion Mask
 				// then Return.
 				if (( mask & m_ExclusionMask_Any ).any( ))
-					return;
+					continue;
 
 				if (( mask & m_ExclusionMask_All ) == mask)
-					return;
+					continue;
 
 				// If the Entity does not contain the Type in the Inclusion Mask,
 				// then return as We're not interested in other types.
@@ -596,7 +598,6 @@ namespace atlas
 						m_MatchingEntities.insert( entityID );
 				}
 
-				++entityID;
 			}
 		}
 
