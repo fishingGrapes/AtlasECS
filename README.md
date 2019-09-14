@@ -3,7 +3,7 @@ An Implementation of Entity Component Systems Pattern leveraging Sparse Sets and
 
 
 #### Features
-* A Dead Simple Entity System and API, where Entities are just integers.
+* A Simple Entity System and API, where Entities are just integers.
 * Smart and Fast Iterations by Storing Matching Entities in a Sparse Sets.
 * Safety Measures to avoid adding Duplicate Components to Entities, removing non-existent Components from Entities or destroying Dead entities.
 * Automatic Deallocation of Component Resources on Entity Deletion.This means, No need to worry about Components once Added.
