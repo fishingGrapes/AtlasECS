@@ -11,8 +11,6 @@ public:
 		// Selectively Include and Exclude Components
 		// using these Functions
 		this->MatchEntitiesWith<FPositionComponent>();
-		this->ExcludeEntitiesWithAnyOf<FStaticMeshComponent>();
-
-		
+		this->ExcludeEntitiesWithAnyOf<FStaticMeshComponent>();	
 	}
 };

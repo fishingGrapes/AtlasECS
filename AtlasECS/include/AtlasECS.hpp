@@ -322,7 +322,7 @@ namespace atlas
 			}
 
 			// This can be used to recycle Entities
-			m_DeletedEntities.push_back( entity );
+			m_DeletedEntities.push_front( entity );
 			m_Entities.erase( entity );
 
 			// It updates the Number of valid Components which might be useful
@@ -401,6 +401,20 @@ namespace atlas
 			uint32_t size = m_ValidComponents[ id ].first;
 
 			return  { buffer, size };
+		}
+
+		template <typename T>
+		T* GetComponent( Entity entity )
+		{
+
+			uint32_t id = T::Id;
+
+			size_t index = entity * T::Size;
+			uint8_t* memory = m_ComponentBuffers[ id ].data( );
+
+			T* component = ( T*) ( &memory[ index ] );
+
+			return  component;
 		}
 
 		const SparseSet<Entity>& GetEntities( ) const
