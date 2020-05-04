@@ -14,7 +14,7 @@ An Implementation of Entity Component Systems Pattern leveraging Sparse Sets and
 #### Usage
 Include the Single Header `AtlasECS.hpp` in your Project. Following is an Example of how to use the Library:
 
-```
+```c++
 //Include this File
 #include "include/AtlasECS.hpp"
 
@@ -68,7 +68,7 @@ int main()
 ```
 
 And, here is how to setup a System:
-```
+```c++
 #include "AtlasECS.hpp"
 
 class CTestSystem : public atlas::CSystem
