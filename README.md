@@ -1,14 +1,14 @@
 ## AtlasECS
-An Implementation of Entity Component Systems Pattern leveraging Sparse Sets and Bit Fields for Efficiency and Performacne.
+An Implementation of Entity Component Systems Pattern leveraging Sparse Sets and Bit Fields for Efficiency and Performance.
 
 
 #### Features
 * A Simple Entity System and API, where Entities are just integers.
-* Smart and Fast Iterations by Storing Matching Entities in a Sparse Sets.
+* Smart and Fast Iterations by Storing Matching Entities in a Sparse set.
 * Safety Measures to avoid adding Duplicate Components to Entities, removing non-existent Components from Entities or destroying Dead entities.
-* Automatic Deallocation of Component Resources on Entity Deletion.This means, No need to worry about Components once Added.
+* Automatic de-allocation of Component Resources on Entity Deletion. This means, No need to worry about Components once added.
 * Filtering allows Inclusion and Exclusion of specific Components, on a Per-System Basis.
-* Components are Stored in contiguous Memory for Cache Efficiency.
+* Components are stored in contiguous Memory for Cache Efficiency.
 
 
 #### Usage
